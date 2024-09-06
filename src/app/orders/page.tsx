@@ -1,6 +1,31 @@
-import React from 'react'
+"use client"
+
+import { OrderType } from '@/types/types';
+import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import React from 'react';
 
 const OrdersPage = () => {
+
+    const { data: session, status } = useSession();
+
+    const router = useRouter();
+
+    if (status === "unauthenticated") {
+        router.push("/");
+    }
+
+    const { isLoading, error, data } = useQuery({
+        queryKey: ['orders'],
+        queryFn: () =>
+            fetch('http://localhost:3000/api/orders').then(
+                (res) => res.json(),
+            ),
+
+    });
+
+    if (isLoading || status === "loading") return "Loading...";
     return (
         <div className='p-4 lg:px-20 xl:px-40'>
             <table className='w-full border-separate border-spacing-3'>
@@ -16,29 +41,33 @@ const OrdersPage = () => {
 
                 </thead>
                 <tbody>
-                    <tr className='text-sm md:text-base odd:bg-red-100'>
-                        <td className='hidden md:block py-6 px-1'>213456789</td>
-                        <td className='py-6 px-1'>19.07.2023</td>
-                        <td className='py-6 px-1'>89.90</td>
-                        <td className='hidden md:block py-6 px-1'>Big Burger Menu (2), Veggie Pizza (2), Coca Cola 1L (2) </td>
-                        <td>On the way (approx. 10min)... </td>
-                    </tr>
+                    {data.map((item: OrderType) => (
 
-                    <tr className='text-sm md:text-base odd:bg-grey-300'>
-                        <td className='hidden md:block py-6 px-1'>213456789</td>
-                        <td className='py-6 px-1'>19.07.2023</td>
-                        <td className='py-6 px-1'>89.90</td>
-                        <td className='hidden md:block py-6 px-1'>Big Burger Menu (2), Veggie Pizza (2), Coca Cola 1L (2) </td>
-                        <td>On the way (approx. 10min)... </td>
-                    </tr>
+                        <tr className='text-sm md:text-base odd:bg-red-100' key={item.id}>
+                            <td className='hidden md:block py-6 px-1'>{item.id}</td>
+                            <td className='py-6 px-1'>{item.createdAt.toString().slice(0, 10)}</td>
+                            <td className='py-6 px-1'>{item.price}</td>
+                            <td className='hidden md:block py-6 px-1'>
+                                {item.products && item.products.length > 0 ? item.products[0].title : 'No product'}
+                            </td>
+                            {
+                                session?.user.isAdmin ? (
+                                    <td>
+                                        <form>
+                                            <input placeholder={item.status} className='p-2 ring-1 ring-red-100 rounded-md'
+                                            />
+                                        </form>
+                                    </td>
+                                ) :
+                                    (
+                                        <td className='py-6 px-1'>{item.status}</td>
+                                    )
+                            }
 
-                    <tr className='text-sm md:text-base odd:bg-red-100'>
-                        <td className='hidden md:block py-6 px-1'>213456789</td>
-                        <td className='py-6 px-1'>19.07.2023</td>
-                        <td className='py-6 px-1'>89.90</td>
-                        <td className='hidden md:block py-6 px-1'>Big Burger Menu (2), Veggie Pizza (2), Coca Cola 1L (2) </td>
-                        <td>On the way (approx. 10min)... </td>
-                    </tr>
+                        </tr>
+                    ))}
+
+
                 </tbody>
             </table>
         </div>
