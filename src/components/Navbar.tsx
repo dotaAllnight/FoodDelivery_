@@ -35,7 +35,7 @@ const Navbar = () => {
                     <span>123 1112</span>
                 </div>
                 <UserLinks />
-                <CartIcon ></CartIcon>
+                <CartIcon />
             </div>
 
 
